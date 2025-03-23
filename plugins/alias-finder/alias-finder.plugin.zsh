@@ -1,5 +1,5 @@
 alias-finder() {
-  local cmd=" " exact="" longer="" cheaper="" wordEnd="'{0,1}$" finder="" filter=""
+  local cmd=" " exact="" cheaper="" wordEnd="'{0,1}$" finder="" filter=""
 
   # build command and options
   for c in "$@"; do
@@ -7,14 +7,12 @@ alias-finder() {
       # TODO: Remove backward compatibility (other than zstyle form)
       # set options if exist
       -e|--exact) exact=true;;
-      -l|--longer) longer=true;;
       -c|--cheaper) cheaper=true;;
       # concatenate cmd
       *) cmd="$cmd$c " ;;
     esac
   done
 
-  zstyle -t ':omz:plugins:alias-finder' longer && longer=true
   zstyle -t ':omz:plugins:alias-finder' exact && exact=true
   zstyle -t ':omz:plugins:alias-finder' cheaper && cheaper=true
 
@@ -24,10 +22,6 @@ alias-finder() {
   ## - replace multiple spaces with one space
   ## - add escaping character to special characters
   cmd=$(echo -n "$cmd" | tr '\n' ' ' | xargs | tr -s '[:space:]' | sed 's/[].\|$(){}?+*^[]/\\&/g')
-
-  if [[ $longer == true ]]; then
-    wordEnd="" # remove wordEnd to find longer aliases
-  fi
 
   # find with alias and grep, removing last word each time until no more words
   while [[ $cmd != "" ]]; do
@@ -43,8 +37,6 @@ alias-finder() {
 
     if [[ $exact == true ]]; then
       break # because exact case is only one
-    elif [[ $longer = true ]]; then
-      break # because above grep command already found every longer aliases during first cycle
     fi
 
     cmd=$(sed -E 's/ {0,}[^ ]*$//' <<< "$cmd") # remove last word
